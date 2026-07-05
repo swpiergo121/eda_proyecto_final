@@ -11,29 +11,31 @@
 
 using namespace std;
 
+typedef unsigned __int128 trie_key;
+
 class x_fast_trie {
 
 public:
   class node {
   public:
-    uint64_t prefix;
-    uint32_t level;
+    trie_key prefix;
+    trie_key level;
     node *left = nullptr;
     node *right = nullptr;
 
     // For use in leaves
-    uint64_t key = 0;
+    trie_key key = 0;
     node *prev = nullptr;
     node *next = nullptr;
     bool is_leaf = false;
 
-    node(uint64_t pre, uint32_t lvl) : prefix(pre), level(lvl) {}
+    node(trie_key pre, trie_key lvl) : prefix(pre), level(lvl) {}
   };
 
-  uint32_t W;
-  vector<unordered_map<uint64_t, node *>> LSS;
+  trie_key W;
+  vector<unordered_map<trie_key, node *>> LSS;
 
-  explicit x_fast_trie(uint32_t num_bits) : W(num_bits), LSS(num_bits + 1) {
+  explicit x_fast_trie(trie_key num_bits) : W(num_bits), LSS(num_bits + 1) {
     root_ = new node(0, 0);
     LSS[0][0] = root_;
     head_ = tail_ = nullptr;
@@ -56,20 +58,60 @@ public:
   node *tail_;
   int lc;
 
-  bool find(uint64_t key) {
+  bool find(trie_key key) {
     auto [level, n] = lowest_ancestor(key);
     return level == W;
   }
 
+  vector<trie_key> get_closest(trie_key key, int n) {
+    vector<trie_key> result;
+    if (n <= 0 || head_ == nullptr)
+      return result;
+
+    // 1. Find a starting leaf.
+    // If key exists, successor(key) returns the key itself.
+    // If key doesn't exist, it returns the smallest element > key.
+    trie_key start_key = successor(key);
+    if (start_key == 0) {
+      // The key is greater than everything in the trie;
+      // the closest values are at the end.
+      start_key = max_key();
+    }
+
+    node *curr = LSS[W].at(start_key);
+
+    // 2. Determine how many to go back from the start_key.
+    // We want roughly n/2 behind and n/2 ahead.
+    int go_back = n / 2;
+    node *temp = curr;
+    while (temp && go_back > 0) {
+      temp = temp->prev;
+      go_back--;
+    }
+
+    // If we went back, the 'temp' pointer is now the leftmost element of our
+    // window. If we hit the head, we start from the head.
+    node *window_start = temp ? temp : head_;
+
+    // 3. Collect up to 'n' values moving forward.
+    node *walker = window_start;
+    while (walker && result.size() < static_cast<size_t>(n)) {
+      result.push_back(walker->key);
+      walker = walker->next;
+    }
+
+    return result;
+  }
+
   int leaf_count() const { return lc; }
 
-  pair<uint32_t, node *> lowest_ancestor(uint64_t key) {
-    uint32_t low = 0;
-    uint32_t high = W;
+  pair<trie_key, node *> lowest_ancestor(trie_key key) {
+    trie_key low = 0;
+    trie_key high = W;
 
     while (low < high) {
-      uint32_t mid = (low + high + 1) / 2;
-      uint64_t pref = key >> (W - mid);
+      trie_key mid = (low + high + 1) / 2;
+      trie_key pref = key >> (W - mid);
       auto it = LSS[mid].find(pref);
       if (it != LSS[mid].end()) {
         low = mid;
@@ -77,7 +119,7 @@ public:
         high = mid - 1;
       }
     }
-    uint64_t pref = (low == 0) ? 0 : (key >> (W - low));
+    trie_key pref = (low == 0) ? 0 : (key >> (W - low));
     return {low, LSS[low].at(pref)};
   }
 
@@ -99,13 +141,13 @@ public:
     return n;
   }
 
-  void fix_descendants(uint64_t key) {
+  void fix_descendants(trie_key key) {
     for (int lvl = static_cast<int>(W) - 1; lvl >= 0; --lvl) {
-      uint64_t prefix = (lvl == 0) ? 0 : (key >> (W - lvl));
+      trie_key prefix = (lvl == 0) ? 0 : (key >> (W - lvl));
       node *n = LSS[lvl].at(prefix);
 
-      uint64_t left_pref = (prefix << 1);
-      uint64_t right_pref = (prefix << 1) | 1;
+      trie_key left_pref = (prefix << 1);
+      trie_key right_pref = (prefix << 1) | 1;
 
       bool has_left = (LSS[lvl + 1].find(left_pref) != LSS[lvl + 1].end());
       bool has_right = (LSS[lvl + 1].find(right_pref) != LSS[lvl + 1].end());
@@ -120,13 +162,13 @@ public:
   }
 
   // Standard ceiling / floor (returns key itself if present)
-  uint64_t successor(uint64_t key) {
+  trie_key successor(trie_key key) {
     auto [level, n] = lowest_ancestor(key);
     if (level == W) {
       return key;
     }
 
-    uint32_t bit = (key >> (W - level - 1)) & 1;
+    trie_key bit = (key >> (W - level - 1)) & 1;
 
     if (bit == 0) {
       node *succ = n->left;
@@ -141,13 +183,13 @@ public:
     }
   }
 
-  uint64_t predecessor(uint64_t key) {
+  trie_key predecessor(trie_key key) {
     auto [level, n] = lowest_ancestor(key);
     if (level == W) {
       return key;
     }
 
-    uint32_t bit = (key >> (W - level - 1)) & 1;
+    trie_key bit = (key >> (W - level - 1)) & 1;
 
     if (bit == 0) {
       node *succ = n->left;
@@ -163,7 +205,7 @@ public:
   }
 
   // FIX 2: Strict successor (in-order next element, never returns key itself)
-  uint64_t strict_successor(uint64_t key) {
+  trie_key strict_successor(trie_key key) {
     auto it = LSS[W].find(key);
     if (it != LSS[W].end()) {
       if (it->second->next)
@@ -174,7 +216,7 @@ public:
   }
 
   // Strict predecessor (in-order previous element, never returns key itself)
-  uint64_t strict_predecessor(uint64_t key) {
+  trie_key strict_predecessor(trie_key key) {
     auto it = LSS[W].find(key);
     if (it != LSS[W].end()) {
       if (it->second->prev)
@@ -184,11 +226,11 @@ public:
     return predecessor(key);
   }
 
-  uint64_t min_key() const { return head_ ? head_->key : 0; }
+  trie_key min_key() const { return head_ ? head_->key : 0; }
 
-  uint64_t max_key() const { return tail_ ? tail_->key : 0; }
+  trie_key max_key() const { return tail_ ? tail_->key : 0; }
 
-  void insert(uint64_t key) {
+  void insert(trie_key key) {
     if (find(key))
       return;
 
@@ -235,9 +277,9 @@ public:
 
     // Walk down from root to create missing internal nodes
     node *cur = root_;
-    for (uint32_t lvl = 1; lvl < W; ++lvl) {
-      uint64_t pref = key >> (W - lvl);
-      uint32_t bit = (key >> (W - lvl)) & 1;
+    for (trie_key lvl = 1; lvl < W; ++lvl) {
+      trie_key pref = key >> (W - lvl);
+      trie_key bit = (key >> (W - lvl)) & 1;
 
       node *&child_ref = (bit == 0) ? cur->left : cur->right;
       if (LSS[lvl].find(pref) == LSS[lvl].end()) {
@@ -249,7 +291,7 @@ public:
 
     // Link leaf as child of level W-1 node
     if (W > 0) {
-      uint32_t bit = key & 1;
+      trie_key bit = key & 1;
       if (bit == 0)
         cur->left = leaf;
       else
@@ -260,7 +302,7 @@ public:
     fix_descendants(key);
   }
 
-  void remove(uint64_t key) { (void)key; }
+  void remove(trie_key key) { (void)key; }
 };
 
 #endif // XFAST_H_

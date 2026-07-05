@@ -2,21 +2,21 @@
 #include <iostream>
 
 int main() {
-  StringXFastTrie trie(5); // 4 chars * 8 bits = W = 32
+  StringXFastTrie trie(15); // 4 chars * 8 bits = W = 32
 
-  trie.insert("beta");
-  trie.insert("alpha");
-  trie.insert("gamma");
+  trie.insert("hoynes");
+  trie.insert("inocentemente");
+  trie.insert("indiscriminado");
 
-  std::cout << (trie.find("alpha") ? "found" : "missing") << "\n";
+  std::cout << (trie.find("inocentemente") ? "found" : "missing") << "\n";
 
-  auto succ = trie.successor("alpha");
+  auto succ = trie.successor("hoynes");
   if (succ)
-    std::cout << "after alpha: " << *succ << "\n"; // beta
+    std::cout << "after hoynes: " << *succ << "\n"; // beta
 
-  auto pred = trie.predecessor("gamma");
+  auto pred = trie.predecessor("inocentemente");
   if (pred)
-    std::cout << "before gamma: " << *pred << "\n"; // beta
+    std::cout << "before inocentemente: " << *pred << "\n"; // beta
 
   return 0;
 }

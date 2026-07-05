@@ -1,7 +1,7 @@
 #include "../bk_tree/dataset_loader.hpp"
 #include "../bk_tree/json_utils.hpp"
 #include "../bk_tree/text_utils.hpp"
-#include "xfast.h"
+#include "str_xfast.h"
 
 #include <algorithm>
 #include <iostream>
@@ -30,11 +30,11 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  int radio = 0;
+  int n_closest = 5;
   try {
     size_t parsed = 0;
-    radio = std::stoi(textoRadio, &parsed);
-    if (parsed != textoRadio.size() || radio < 0) {
+    n_closest = std::stoi(textoRadio, &parsed);
+    if (parsed != textoRadio.size() || n_closest < 0) {
       throw std::invalid_argument("invalid radius");
     }
   } catch (...) {
@@ -59,13 +59,15 @@ int main(int argc, char *argv[]) {
 
   StringXFastTrie trie(5); // 4 chars * 8 bits = W = 32
   for (const InfoPalabra &item : palabras) {
-    tree.insertar(item.palabra, item.frecuencia);
+    trie.insert(item.palabra);
   }
 
-  std::vector<ResultadoBusqueda> resultados =
-      tree.busqueda(palabraBuscada, radio);
-  std::cout << construirRespuestaJson(palabraBuscada, radio, rutaArchivo,
-                                      palabras.size(), resultados)
+  std::vector<string> resultados =
+      trie.get_closest_strings(palabraBuscada, n_closest);
+
+  std::cout << construirRespuestaJsonXFastTrie(palabraBuscada, n_closest,
+                                               rutaArchivo, palabras.size(),
+                                               resultados)
             << '\n';
   return 0;
 }

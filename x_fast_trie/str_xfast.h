@@ -11,16 +11,16 @@
 class StringXFastTrie {
 public:
   explicit StringXFastTrie(size_t max_string_length)
-      : trie_(static_cast<uint32_t>(max_string_length * 8)),
+      : trie_(static_cast<trie_key>(max_string_length * 8)),
         max_len_(max_string_length) {
-    if (max_string_length == 0 || max_string_length > 8) {
+    if (max_string_length == 0 || max_string_length > 16) {
       throw std::runtime_error(
-          "max_string_length must be between 1 and 8 (uint64_t limit)");
+          "max_string_length must be between 1 and 8 (trie_key limit)");
     }
   }
 
   void insert(const std::string &s) {
-    uint64_t k = encode(s);
+    trie_key k = encode(s);
     if (trie_.find(k))
       return; // already present
     trie_.insert(k);
@@ -29,31 +29,43 @@ public:
 
   bool find(const std::string &s) { return trie_.find(encode(s)); }
 
+  std::vector<std::string> get_closest_strings(const std::string &s, int n) {
+    trie_key k = encode(s);
+    std::vector<trie_key> closest_keys = trie_.get_closest(k, n);
+
+    std::vector<std::string> result;
+    for (trie_key key : closest_keys) {
+      // Use the originals map to turn the key back into a string
+      result.push_back(originals_.at(key));
+    }
+    return result;
+  }
+
   std::optional<std::string> successor(const std::string &s) {
-    uint64_t k = encode(s);
-    uint64_t succ = trie_.strict_successor(k);
+    trie_key k = encode(s);
+    trie_key succ = trie_.strict_successor(k);
     if (succ == 0)
       return std::nullopt;
     return originals_.at(succ);
   }
 
   std::optional<std::string> predecessor(const std::string &s) {
-    uint64_t k = encode(s);
-    uint64_t pred = trie_.strict_predecessor(k);
+    trie_key k = encode(s);
+    trie_key pred = trie_.strict_predecessor(k);
     if (pred == 0)
       return std::nullopt;
     return originals_.at(pred);
   }
 
   std::optional<std::string> min() const {
-    uint64_t k = trie_.min_key();
+    trie_key k = trie_.min_key();
     if (k == 0)
       return std::nullopt;
     return originals_.at(k);
   }
 
   std::optional<std::string> max() const {
-    uint64_t k = trie_.max_key();
+    trie_key k = trie_.max_key();
     if (k == 0)
       return std::nullopt;
     return originals_.at(k);
@@ -64,9 +76,9 @@ public:
 private:
   x_fast_trie trie_;
   size_t max_len_;
-  std::unordered_map<uint64_t, std::string> originals_;
+  std::unordered_map<trie_key, std::string> originals_;
 
-  uint64_t encode(const std::string &s) const {
+  trie_key encode(const std::string &s) const {
     if (s.empty()) {
       throw std::runtime_error("Empty strings are not allowed");
     }
@@ -77,11 +89,11 @@ private:
       throw std::runtime_error("Null bytes are not allowed in strings");
     }
 
-    uint64_t key = 0;
+    trie_key key = 0;
     for (unsigned char c : s) {
       key = (key << 8) | c;
     }
-    key <<= static_cast<uint64_t>(8 * (max_len_ - s.size()));
+    key <<= static_cast<trie_key>(8 * (max_len_ - s.size()));
     return key;
   }
 };

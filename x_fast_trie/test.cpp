@@ -1,6 +1,6 @@
-#include "../bk_tree/dataset_loader.hpp"
-#include "../bk_tree/json_utils.hpp"
-#include "../bk_tree/text_utils.hpp"
+#include "../utils/dataset_loader.hpp"
+#include "../utils/json_utils.hpp"
+#include "../utils/text_utils.hpp"
 #include "str_xfast.h"
 
 #include <algorithm>
@@ -57,9 +57,15 @@ int main(int argc, char *argv[]) {
               return a.frecuencia > b.frecuencia;
             });
 
-  StringXFastTrie trie(5); // 4 chars * 8 bits = W = 32
+  StringXFastTrie trie(16); // 4 chars * 8 bits = W = 32
+  vector<string> words_skip;
   for (const InfoPalabra &item : palabras) {
-    trie.insert(item.palabra);
+    try {
+      trie.insert(item.palabra);
+    } catch (const std::runtime_error) {
+      words_skip.push_back(item.palabra);
+      continue;
+    }
   }
 
   std::vector<string> resultados =
@@ -67,7 +73,7 @@ int main(int argc, char *argv[]) {
 
   std::cout << construirRespuestaJsonXFastTrie(palabraBuscada, n_closest,
                                                rutaArchivo, palabras.size(),
-                                               resultados)
+                                               resultados, words_skip)
             << '\n';
   return 0;
 }

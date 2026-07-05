@@ -15,7 +15,7 @@ public:
         max_len_(max_string_length) {
     if (max_string_length == 0 || max_string_length > 16) {
       throw std::runtime_error(
-          "max_string_length must be between 1 and 8 (trie_key limit)");
+          "max_string_length must be between 1 and 16 (trie_key limit)");
     }
   }
 

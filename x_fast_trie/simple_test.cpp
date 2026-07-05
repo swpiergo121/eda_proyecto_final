@@ -132,44 +132,44 @@ int main() {
   cout << "succ: " << trie_succ << endl;
   cout << "pred: " << trie_pred << endl;
 
-  // std::mt19937_64 rng(12345);
-  // std::uniform_int_distribution<uint32_t> dist(0, max_val + 100);
+  std::mt19937_64 rng(12345);
+  std::uniform_int_distribution<uint32_t> dist(0, 255);
 
-  // for (int i = 0; i < 10000; ++i) {
-  //   uint32_t q = dist(rng);
-  //   if (ref.count(q))
-  //     continue; // skip if it's in the set
+  for (int i = 0; i < 100; ++i) {
+    uint32_t q = dist(rng);
+    if (ref.count(q))
+      continue; // skip if it's in the set
 
-  //   uint32_t trie_succ = trie.successor(q);
-  //   uint32_t trie_pred = trie.predecessor(q);
+    uint32_t trie_succ = trie.successor(q);
+    uint32_t trie_pred = trie.predecessor(q);
 
-  //   // Reference successor
-  //   uint32_t ref_succ = 0;
-  //   auto it_up = ref.upper_bound(q);
-  //   if (it_up != ref.end())
-  //     ref_succ = *it_up;
+    // Reference successor
+    uint32_t ref_succ = 0;
+    auto it_up = ref.upper_bound(q);
+    if (it_up != ref.end())
+      ref_succ = *it_up;
 
-  //   // Reference predecessor
-  //   uint32_t ref_pred = 0;
-  //   auto it_low = ref.lower_bound(q);
-  //   if (it_low != ref.begin()) {
-  //     ref_pred = *std::prev(it_low);
-  //   }
+    // Reference predecessor
+    uint32_t ref_pred = 0;
+    auto it_low = ref.lower_bound(q);
+    if (it_low != ref.begin()) {
+      ref_pred = *std::prev(it_low);
+    }
 
-  //   if (trie_succ != ref_succ) {
-  //     std::cerr << "❌ successor(" << q << "): trie=" << trie_succ
-  //               << " ref=" << ref_succ << "\n";
-  //     if (++errors >= 5)
-  //       break;
-  //   }
+    if (trie_succ != ref_succ) {
+      std::cerr << "❌ successor(" << q << "): trie=" << trie_succ
+                << " ref=" << ref_succ << "\n";
+      if (++errors >= 5)
+        break;
+    }
 
-  //   if (trie_pred != ref_pred) {
-  //     std::cerr << "❌ predecessor(" << q << "): trie=" << trie_pred
-  //               << " ref=" << ref_pred << "\n";
-  //     if (++errors >= 5)
-  //       break;
-  //   }
-  // }
+    if (trie_pred != ref_pred) {
+      std::cerr << "❌ predecessor(" << q << "): trie=" << trie_pred
+                << " ref=" << ref_pred << "\n";
+      if (++errors >= 5)
+        break;
+    }
+  }
 
   if (errors == 0)
     std::cout << "Random queries passed.\n";

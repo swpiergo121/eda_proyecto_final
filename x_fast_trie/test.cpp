@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
               return a.frecuencia > b.frecuencia;
             });
 
-  x_fast_trie BKTree tree;
+  StringXFastTrie trie(5); // 4 chars * 8 bits = W = 32
   for (const InfoPalabra &item : palabras) {
     tree.insertar(item.palabra, item.frecuencia);
   }

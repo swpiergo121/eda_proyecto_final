@@ -24,9 +24,6 @@ public:
     node *right = nullptr;
 
     // For use in leaves
-    trie_key key = 0;
-    node *prev = nullptr;
-    node *next = nullptr;
     bool is_leaf = false;
 
     node(trie_key pre, trie_key lvl) : prefix(pre), level(lvl) {}
@@ -85,7 +82,7 @@ public:
     int go_back = n / 2;
     node *temp = curr;
     while (temp && go_back > 0) {
-      temp = temp->prev;
+      temp = temp->left;
       go_back--;
     }
 
@@ -96,8 +93,8 @@ public:
     // 3. Collect up to 'n' values moving forward.
     node *walker = window_start;
     while (walker && result.size() < static_cast<size_t>(n)) {
-      result.push_back(walker->key);
-      walker = walker->next;
+      result.push_back(walker->prefix);
+      walker = walker->right;
     }
 
     return result;
@@ -174,12 +171,12 @@ public:
       node *succ = n->left;
       if (succ == nullptr)
         return 0;
-      return succ->key;
+      return succ->prefix;
     } else {
       node *pred = n->right;
-      if (pred == nullptr || pred->next == nullptr)
+      if (pred == nullptr || pred->right == nullptr)
         return 0;
-      return pred->next->key;
+      return pred->right->prefix;
     }
   }
 
@@ -193,14 +190,14 @@ public:
 
     if (bit == 0) {
       node *succ = n->left;
-      if (succ == nullptr || succ->prev == nullptr)
+      if (succ == nullptr || succ->left == nullptr)
         return 0;
-      return succ->prev->key;
+      return succ->left->prefix;
     } else {
       node *pred = n->right;
       if (pred == nullptr)
         return 0;
-      return pred->key;
+      return pred->prefix;
     }
   }
 
@@ -208,8 +205,8 @@ public:
   trie_key strict_successor(trie_key key) {
     auto it = LSS[W].find(key);
     if (it != LSS[W].end()) {
-      if (it->second->next)
-        return it->second->next->key;
+      if (it->second->right)
+        return it->second->right->prefix;
       return 0;
     }
     return successor(key);
@@ -219,16 +216,16 @@ public:
   trie_key strict_predecessor(trie_key key) {
     auto it = LSS[W].find(key);
     if (it != LSS[W].end()) {
-      if (it->second->prev)
-        return it->second->prev->key;
+      if (it->second->left)
+        return it->second->left->prefix;
       return 0;
     }
     return predecessor(key);
   }
 
-  trie_key min_key() const { return head_ ? head_->key : 0; }
+  trie_key min_key() const { return head_ ? head_->prefix : 0; }
 
-  trie_key max_key() const { return tail_ ? tail_->key : 0; }
+  trie_key max_key() const { return tail_ ? tail_->prefix : 0; }
 
   void insert(trie_key key) {
     if (find(key))
@@ -238,11 +235,8 @@ public:
 
     node *leaf = new node(key, W);
     leaf->is_leaf = true;
-    leaf->key = key;
     leaf->left = nullptr;
     leaf->right = nullptr;
-    leaf->prev = nullptr;
-    leaf->next = nullptr;
 
     if (head_ == nullptr) {
       head_ = tail_ = leaf;
@@ -252,21 +246,22 @@ public:
 
       if (pred_opt != 0) {
         node *pred_node = LSS[W].at(pred_opt);
-        leaf->prev = pred_node;
-        leaf->next = pred_node->next;
-        if (pred_node->next)
-          pred_node->next->prev = leaf;
-        pred_node->next = leaf;
+        leaf->left = pred_node;
+        leaf->right = pred_node->right;
+        if (pred_node->right)
+          pred_node->right->left = leaf;
+        pred_node->right = leaf;
       } else if (succ_opt != 0) {
         node *succ_node = LSS[W].at(succ_opt);
-        leaf->next = succ_node;
-        leaf->prev = succ_node->prev;
-        if (succ_node->prev)
-          succ_node->prev->next = leaf;
-        succ_node->prev = leaf;
+        leaf->right = succ_node;
+        leaf->left = succ_node->left;
+        if (succ_node->left) {
+          succ_node->left->right = leaf;
+        }
+        succ_node->left = leaf;
       } else {
         head_ = tail_ = leaf;
-        leaf->prev = leaf->next = nullptr;
+        leaf->left = leaf->right = nullptr;
       }
 
       if (pred_opt == 0)
@@ -302,7 +297,9 @@ public:
     fix_descendants(key);
   }
 
-  void remove(trie_key key) { (void)key; }
+  void remove(trie_key key) {
+    // TODO
+  }
 };
 
 #endif // XFAST_H_

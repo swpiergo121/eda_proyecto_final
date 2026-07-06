@@ -1,0 +1,4 @@
+File,DatasetSize,BuildTimeMs,QueryTimeMs
+data/palabras_frecuencias_30000.csv,30000,246260,5.78641
+data/palabras_frecuencias_40000.csv,40000,447166,10.063
+data/palabras_frecuencias.csv,50025,622416,8.2933

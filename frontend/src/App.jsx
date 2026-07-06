@@ -1,4 +1,5 @@
 import './index.css'
+import './App.css'
 import HomePage from './pages/HomePage'
 
 export default function App() {

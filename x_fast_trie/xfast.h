@@ -201,28 +201,6 @@ public:
     }
   }
 
-  // FIX 2: Strict successor (in-order next element, never returns key itself)
-  trie_key strict_successor(trie_key key) {
-    auto it = LSS[W].find(key);
-    if (it != LSS[W].end()) {
-      if (it->second->right)
-        return it->second->right->prefix;
-      return 0;
-    }
-    return successor(key);
-  }
-
-  // Strict predecessor (in-order previous element, never returns key itself)
-  trie_key strict_predecessor(trie_key key) {
-    auto it = LSS[W].find(key);
-    if (it != LSS[W].end()) {
-      if (it->second->left)
-        return it->second->left->prefix;
-      return 0;
-    }
-    return predecessor(key);
-  }
-
   trie_key min_key() const { return head_ ? head_->prefix : 0; }
 
   trie_key max_key() const { return tail_ ? tail_->prefix : 0; }

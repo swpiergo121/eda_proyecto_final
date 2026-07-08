@@ -41,21 +41,7 @@ public:
     return result;
   }
 
-  std::optional<std::string> successor(const std::string &s) {
-    trie_key k = encode(s);
-    trie_key succ = trie_.strict_successor(k);
-    if (succ == 0)
-      return std::nullopt;
-    return originals_.at(succ);
-  }
 
-  std::optional<std::string> predecessor(const std::string &s) {
-    trie_key k = encode(s);
-    trie_key pred = trie_.strict_predecessor(k);
-    if (pred == 0)
-      return std::nullopt;
-    return originals_.at(pred);
-  }
 
   std::optional<std::string> min() const {
     trie_key k = trie_.min_key();

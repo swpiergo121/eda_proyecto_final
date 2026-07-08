@@ -45,13 +45,13 @@ void saveResultsToFile(const string &outputFileName,
 int main() {
   // 1. Configuration
   vector<string> files = {
-      // "data/palabras_frecuencias_100.csv",
-      // "data/palabras_frecuencias_1000.csv",
-      // "data/palabras_frecuencias_10000.csv",
-      // "data/palabras_frecuencias_20000.csv",
-      "data/palabras_frecuencias_30000.csv",
-      "data/palabras_frecuencias_40000.csv",
-      "data/palabras_frecuencias.csv",
+      "data/palabras_frecuencias_100.csv",
+      "data/palabras_frecuencias_1000.csv",
+      "data/palabras_frecuencias_10000.csv",
+      "data/palabras_frecuencias_20000.csv",
+      // "data/palabras_frecuencias_30000.csv",
+      // "data/palabras_frecuencias_40000.csv",
+      // "data/palabras_frecuencias.csv",
   };
   string queryWord = "hola";
   int n_closest = 5;
@@ -113,7 +113,7 @@ int main() {
   }
 
   // Save all results to the file
-  string outputCsv = "results/benchmark_results6.csv";
+  string outputCsv = "results/x_fast_benchmark_results4.csv";
   saveResultsToFile(outputCsv, report);
 
   return 0;
